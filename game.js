@@ -4,6 +4,9 @@ const ctx = canvas.getContext('2d');
 const playerImage = new Image();
 playerImage.src = 'bronte.png';
 
+const goalImage = new Image();
+goalImage.src = 'pineapple.png';
+
 // Player
 const player = {
   x: 50,
@@ -44,9 +47,8 @@ const platforms = [
 const goal = {
   x: 275,
   y: 50,
-  width: 50,
-  height: 50,
-  color: 'yellow'
+  width: 35,
+  height: 50
 };
 
 function drawPlayer() {
@@ -61,8 +63,7 @@ function drawPlatforms() {
 }
 
 function drawGoal() {
-  ctx.fillStyle = goal.color;
-  ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+  ctx.drawImage(goalImage, goal.x, goal.y, goal.width, goal.height);
 }
 
 function clearCanvas() {
@@ -107,6 +108,13 @@ function checkWinCondition() {
     // Reset player position
     player.x = 50;
     player.y = 500;
+    player.dx = 0;
+    player.dy = 0;
+    player.jumping = false;
+    player.grounded = true;
+    keys.right = false;
+    keys.left = false;
+    keys.up = false;
   }
 }
 
