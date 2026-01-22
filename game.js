@@ -27,21 +27,15 @@ const keys = {
   up: false
 };
 
-// Platforms
-const platforms = [
+const groundPlatforms = [
   // Ground
-  { x: 0, y: 580, width: 250, height: 20 },
-  { x: 350, y: 580, width: 250, height: 20 },
-  { x: 700, y: 580, width: 100, height: 20 },
-
-  // Floating platforms
-  { x: 150, y: 500, width: 100, height: 20 },
-  { x: 300, y: 420, width: 100, height: 20 },
-  { x: 450, y: 340, width: 100, height: 20 },
-  { x: 600, y: 260, width: 100, height: 20 },
-  { x: 450, y: 180, width: 100, height: 20 },
-  { x: 250, y: 100, width: 100, height: 20 },
+  { x: 0, y: 580, width: 230, height: 20 },
+  { x: 350, y: 580, width: 230, height: 20 },
+  { x: 700, y: 580, width: 80, height: 20 },
 ];
+
+// Platforms
+let platforms;
 
 // Goal
 const goal = {
@@ -50,6 +44,46 @@ const goal = {
   width: 35,
   height: 50
 };
+
+function createLevel() {
+  const newPlatforms = [];
+  // Start with a platform at the bottom
+  let lastPlatform = { x: 300, y: 500, width: 100, height: 20 };
+  newPlatforms.push(lastPlatform);
+
+  for (let i = 0; i < 9; i++) {
+      let newX, newY;
+      let attempts = 0;
+      do {
+          // somewhere between 106-150px left or right of the last platform's center, ensuring a gap larger than player speed
+          const xOffset = (Math.random() * 44 + 106) * (Math.random() < 0.5 ? 1 : -1);
+          newX = lastPlatform.x + xOffset;
+          // somewhere between 50-80px above the last platform
+          newY = lastPlatform.y - (Math.random() * 30 + 50);
+          attempts++;
+      } while (
+          // Ensure the new platform is within the canvas bounds
+          (newX < 0 || newX + 100 > canvas.width || newY < 0) && attempts < 10
+      );
+      
+      if (attempts < 10) {
+          lastPlatform = { x: newX, y: newY, width: 100, height: 20 };
+          newPlatforms.push(lastPlatform);
+      }
+  }
+  return newPlatforms;
+}
+
+platforms = [
+  ...groundPlatforms,
+  ...createLevel()
+];
+
+function randomizeGoal() {
+    const lastPlatform = platforms[platforms.length -1];
+    goal.x = lastPlatform.x + (lastPlatform.width / 2) - (goal.width / 2);
+    goal.y = Math.max(0, lastPlatform.y - goal.height); // Ensure goal is not off-screen upwards
+}
 
 function drawPlayer() {
   ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
@@ -115,6 +149,13 @@ function checkWinCondition() {
     keys.right = false;
     keys.left = false;
     keys.up = false;
+
+    // Generate new level
+    platforms = [
+      ...groundPlatforms,
+      ...createLevel()
+    ];
+    randomizeGoal();
   }
 }
 
@@ -161,8 +202,8 @@ function update() {
       player.y < platform.y + platform.height &&
       player.y + player.height > platform.y
     ) {
-      // Collision detected, but only stop if falling
-      if (player.dy > 0) {
+      const previousPlayerBottom = (player.y - player.dy) + player.height;
+      if (player.dy >= 0 && previousPlayerBottom <= platform.y) { 
         player.y = platform.y - player.height;
         player.dy = 0;
         player.grounded = true;
@@ -171,6 +212,18 @@ function update() {
     }
   });
 
+  // Check if player falls off the bottom of the screen
+  if (player.y > canvas.height) {
+    player.x = 50;
+    player.y = 500;
+    player.dx = 0;
+    player.dy = 0;
+    player.jumping = false;
+    player.grounded = true;
+    keys.right = false;
+    keys.left = false;
+    keys.up = false;
+  }
 
   clearCanvas();
   drawPlatforms();
