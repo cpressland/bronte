@@ -13,6 +13,7 @@ COPY style.css /usr/share/nginx/html/style.css
 COPY game.js /usr/share/nginx/html/game.js
 COPY bronte.png /usr/share/nginx/html/bronte.png
 COPY pineapple.png /usr/share/nginx/html/pineapple.png
+COPY cart.jpg /usr/share/nginx/html/cart.jpg
 
 # Expose port 80
 EXPOSE 80
